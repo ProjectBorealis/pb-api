@@ -3,10 +3,8 @@ import { Context, Hono } from "hono";
 import { bearerAuth } from "hono/bearer-auth";
 import { cors } from "hono/cors";
 import { authenticate } from "utils";
-import { TaskCreate } from "./endpoints/taskCreate";
-import { TaskDelete } from "./endpoints/taskDelete";
-import { TaskFetch } from "./endpoints/taskFetch";
-import { TaskList } from "./endpoints/taskList";
+import { MemberCreate } from "./endpoints/adminMemberCreate";
+import { MemberList } from "./endpoints/adminMemberList";
 
 // Start a Hono app
 const app = new Hono();
@@ -85,10 +83,8 @@ openapi.registry.registerComponent("securitySchemes", "BearerAuth", {
 });
 
 // Register OpenAPI endpoints
-openapi.get("/api/admin", TaskList);
-openapi.post("/api/tasks", TaskCreate);
-openapi.get("/api/tasks/:taskSlug", TaskFetch);
-openapi.delete("/api/tasks/:taskSlug", TaskDelete);
+openapi.get("/api/admin/users", MemberList);
+openapi.post("/api/admin/users", MemberCreate);
 
 // Export the Hono app
 export default app;
