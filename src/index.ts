@@ -6,8 +6,12 @@ import { authenticate } from "utils";
 import { MemberCreate } from "./endpoints/adminMemberCreate";
 import { MemberList } from "./endpoints/adminMemberList";
 
+type Bindings = {
+  DB_ROSTER: D1Database;
+};
+
 // Start a Hono app
-const app = new Hono();
+const app = new Hono<{ Bindings: Bindings }>();
 
 const allowedOrigins = new Set([
   "https://projectborealis.com",
@@ -77,7 +81,22 @@ const openapi = fromHono(app, {
   docs_url: "/",
 });
 
-openapi.registry.registerComponent("securitySchemes", "BearerAuth", {
+openapi.registry.registerComponent("securitySchemes", "DevBearerAuth", {
+  type: "http",
+  scheme: "bearer",
+});
+
+openapi.registry.registerComponent("securitySchemes", "AdminBearerAuth", {
+  type: "http",
+  scheme: "bearer",
+});
+
+openapi.registry.registerComponent("securitySchemes", "PublicBearerAuth", {
+  type: "http",
+  scheme: "bearer",
+});
+
+openapi.registry.registerComponent("securitySchemes", "GameBearerAuth", {
   type: "http",
   scheme: "bearer",
 });

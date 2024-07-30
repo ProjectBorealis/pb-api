@@ -15,6 +15,11 @@ export class MemberCreate extends OpenAPIRoute {
         },
       },
     },
+    security: [
+      {
+        AdminBearerAuth: [],
+      },
+    ],
     responses: {
       "200": {
         description: "Returns the created member",
@@ -41,7 +46,7 @@ export class MemberCreate extends OpenAPIRoute {
     // Retrieve the validated request body
     const memberToCreate = data.body;
 
-    // Implement your own object insertion here
+    // Object insertion
 
     // return the new member
     return {
