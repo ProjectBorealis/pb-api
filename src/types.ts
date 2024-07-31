@@ -4,20 +4,20 @@ import { z } from "zod";
 export const Member = z.object({
   // info
   nickname: Str(),
-  credits_name: Str({ required: false }).nullable(),
-  legal_name: Str({ required: false }).nullable(),
-  timezone: Str({ required: false }).nullable(),
+  credits_name: Str().nullish(),
+  legal_name: Str().nullish(),
+  timezone: Str().nullish(),
   member_status: Str(),
   // team info
   teams: Arr(Str()),
   // accounts
-  github: Str(),
+  github: Str().nullish(),
   discord: Str(),
-  google: Email(),
-  reddit: Str({ required: false }).nullable(),
-  email: Email(),
-  steamworks: Email(),
-  steamid: Str(),
+  google: Email().nullish(),
+  reddit: Str().nullish(),
+  email: Email().nullish(),
+  steamworks: Email().nullish(),
+  steamid: Str().nullish(),
   // documents
   va: z.coerce.boolean().nullish().default(false),
   nda: z.coerce.boolean().nullish().default(false),
@@ -26,7 +26,7 @@ export const Member = z.object({
   // join/end
   join_date: z.string().date(),
   end_date: z.string().date().nullish(),
-  end_reason: Str({ required: false }).nullable(),
+  end_reason: Str().nullish(),
 });
 
 export type MemberType = z.infer<typeof Member>;

@@ -171,4 +171,7 @@ dist
 .dev.vars
 
 # sql scripts
+init.sql
 *.sql
+*.txt
+*.csv
