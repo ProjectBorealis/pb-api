@@ -34,3 +34,9 @@ export type MemberType = z.infer<typeof Member>;
 export type MemberTypeDb = Omit<MemberType, "teams"> & { member_id: number } & {
   team_name: string;
 };
+
+const ADMIN_TEAMS = ["Directors", "Production", "Team Leads"];
+
+export const isAdmin = (teams: Set<string>) => {
+  return ADMIN_TEAMS.some((team) => teams.has(team));
+};

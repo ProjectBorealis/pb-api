@@ -1,4 +1,5 @@
 import { fromHono } from "chanfana";
+import { MemberRefresh } from "endpoints/adminMemberRefresh";
 import { Context, Hono } from "hono";
 import { bearerAuth } from "hono/bearer-auth";
 import { cors } from "hono/cors";
@@ -103,6 +104,7 @@ openapi.registry.registerComponent("securitySchemes", "GameBearerAuth", {
 
 // Register OpenAPI endpoints
 openapi.get("/api/admin/users", MemberList);
+openapi.post("/api/admin/users/refresh", MemberRefresh);
 openapi.post("/api/admin/users", MemberCreate);
 
 // Export the Hono app

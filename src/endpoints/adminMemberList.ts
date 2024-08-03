@@ -1,4 +1,4 @@
-import { Bool, Num, OpenAPIRoute } from "chanfana";
+import { Bool, OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
 import { Member, MemberType, MemberTypeDb } from "types";
 import { z } from "zod";
@@ -20,14 +20,6 @@ export class MemberList extends OpenAPIRoute {
   schema = {
     tags: ["Members"],
     summary: "List Members",
-    request: {
-      query: z.object({
-        page: Num({
-          description: "Page number",
-          default: 0,
-        }),
-      }),
-    },
     security: [
       {
         AdminBearerAuth: [],
@@ -53,19 +45,6 @@ export class MemberList extends OpenAPIRoute {
   };
 
   async handle(c: Context) {
-    // Get validated data
-    const data = await this.getValidatedData<typeof this.schema>();
-
-    // Retrieve the validated parameters
-    const { page } = data.query;
-
-    if (page >= 1) {
-      return {
-        success: false,
-        members: [],
-      };
-    }
-
     const allMembers = await findAllMembers(c.env.DB_ROSTER);
     const members: Record<number, MemberType> = {};
     for (const member of allMembers) {
@@ -81,7 +60,9 @@ export class MemberList extends OpenAPIRoute {
 
     return {
       success: true,
-      members: Object.values(members),
+      result: {
+        members: Object.values(members),
+      },
     };
   }
 }
