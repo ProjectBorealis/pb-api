@@ -117,13 +117,20 @@ export class MemberRefresh extends OpenAPIRoute {
       applications: isAdmin,
     };
 
+    const noAdminRepos = new Set(["pb", "UnrealEngine"]);
+
     const repoSets = {} as Record<string, Record<string, string>>;
 
     async function handleRepo(repo) {
       repoSets[repo] = {};
       // TODO: pagination
       const repoMembers = (await fetch(
-        `https://api.github.com/repos/ProjectBorealisTeam/${repo}/collaborators?per_page=100`
+        `https://api.github.com/repos/ProjectBorealisTeam/${repo}/collaborators?per_page=100${
+          noAdminRepos.has(repo) ? "&permission=push" : ""
+        }`,
+        {
+          headers: GITHUB_REST_API_HEADERS,
+        }
       ).then((resp) => resp.json())) as Array<any>;
       for (const member of repoMembers) {
         const github = member["id"].toString();
@@ -185,7 +192,10 @@ export class MemberRefresh extends OpenAPIRoute {
           }
           return;
         }
-        const permission = github_admins.has(github) ? "admin" : "write";
+        const permission =
+          github_admins.has(github) && !noAdminRepos.has(repo)
+            ? "admin"
+            : "write";
         // Check if we need to add/update perms
         if (permission !== repoSets[repo][github]) {
           const collab_resp = await fetch(
