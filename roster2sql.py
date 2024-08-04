@@ -25,7 +25,9 @@ team_ids = {
     "Dev Ops": 17,
     "Writing": 19,
     "Consulting": 20,
+    "Graphic Design": 21,
 }
+
 
 def handle_date(date: str) -> str:
     date = date.split("/")
@@ -34,17 +36,20 @@ def handle_date(date: str) -> str:
     year = date[2]
     return f"{year}-{month}-{day}"
 
+
 def handle_team(team: str) -> list[str]:
     team = team.replace(" Team", "")
     team = team.split("/")
     return team
 
+
 def sort_key(row):
     return row[17]
 
+
 roster: list[list[str | bool | int]] = []
 
-with open("Team Roster - Main Sheet.csv", newline='') as csvfile:
+with open("Team Roster - Main Sheet.csv", newline="") as csvfile:
     roster_reader = csv.reader(csvfile)
     skip = 3
     num = 1
@@ -79,11 +84,36 @@ with open("Team Roster - Main Sheet.csv", newline='') as csvfile:
         github = row[22]
         steamworks = row[23]
         steam = row[24]
-        row = [teams, nickname, credits, legal, time_zone, status, github, nickname, google, reddit, email, steamworks, steam, va, nda, cla, scenefusion, date_added, date_removed, removal]
+        title = None
+        row = [
+            teams,
+            nickname,
+            credits,
+            legal,
+            time_zone,
+            status,
+            title,
+            github,
+            nickname,
+            google,
+            reddit,
+            email,
+            steamworks,
+            steam,
+            va,
+            nda,
+            cla,
+            scenefusion,
+            date_added,
+            date_removed,
+            removal,
+        ]
         roster.append(row)
+
 
 def not_coms(row):
     return row[1] != "mastercoms"
+
 
 roster = [x for x in roster if not_coms(x)]
 roster.sort(key=sort_key)
