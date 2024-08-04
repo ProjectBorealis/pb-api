@@ -4,6 +4,7 @@ import {
   constructTeamChecker,
   GAME_PROGRAMMING_TEAMS,
   isAdmin,
+  MemberType,
   WEB_TEAMS,
 } from "types";
 import { z } from "zod";
@@ -53,9 +54,10 @@ export class MemberRefresh extends OpenAPIRoute {
     let success = true;
     const results = [];
 
-    const members = member_list["result"]["members"];
+    const members = member_list["result"]["members"] as Array<MemberType>;
     const github_ids = [];
     const github_admins = new Set();
+    const github_team = new Set();
 
     const by_github = {};
 
@@ -70,34 +72,42 @@ export class MemberRefresh extends OpenAPIRoute {
       "User-Agent": "Project Borealis API",
     };
 
-    for (const member of members) {
-      if (member.member_status === "Active") {
-        const github = member.github;
-        if (
-          github &&
-          !github.startsWith("/") &&
-          !Number.isNaN(Number(github))
-        ) {
-          github_ids.push(github);
-          by_github[github] = member;
-          const team_set = new Set(member.teams) as Set<string>;
-          const user_resp = await fetch(
-            `https://api.github.com/user/${github}`,
-            {
-              headers: GITHUB_REST_API_HEADERS,
-            }
-          ).then((resp) => resp.json());
-          github_to_node[github] = user_resp["node_id"];
-          results.push(user_resp);
-          const username = user_resp["login"];
-          github_usernames[github] = username;
-          if (isAdmin(team_set)) {
-            github_admins.add(github);
-          }
+    const githubMemberStatus = new Set(["Active"]);
+
+    // Collect info about our members
+    async function handleMembers(member: MemberType) {
+      const github = member.github;
+      if (github && !github.startsWith("/") && !Number.isNaN(Number(github))) {
+        // We go through all github IDs...
+        github_ids.push(github);
+        // and filter by the active people
+        if (githubMemberStatus.has(member.member_status)) {
+          github_team.add(github);
+        }
+        // Just an easy lookup for the member info
+        by_github[github] = member;
+        // Add some lookups from GitHub user info, like username and node ID
+        const user_resp = await fetch(`https://api.github.com/user/${github}`, {
+          headers: GITHUB_REST_API_HEADERS,
+        }).then((resp) => resp.json());
+        results.push(user_resp);
+        github_to_node[github] = user_resp["node_id"];
+        github_usernames[github] = user_resp["login"];
+        // Check if GitHub admin.
+        const team_set = new Set(member.teams) as Set<string>;
+        if (isAdmin(team_set)) {
+          github_admins.add(github);
         }
       }
     }
 
+    const memberJobs = [];
+    for (const member of members) {
+      memberJobs.push(handleMembers(member));
+    }
+    await Promise.all(memberJobs);
+
+    // The private repos and their permissions
     const repos = {
       pb: () => true,
       "pb-public-site": constructTeamChecker(WEB_TEAMS),
@@ -107,70 +117,178 @@ export class MemberRefresh extends OpenAPIRoute {
       applications: isAdmin,
     };
 
-    for (const github of github_ids) {
+    const repoSets = {} as Record<string, Record<string, string>>;
+
+    async function handleRepo(repo) {
+      repoSets[repo] = {};
+      // TODO: pagination
+      const repoMembers = (await fetch(
+        `https://api.github.com/repos/ProjectBorealisTeam/${repo}/collaborators?per_page=100`
+      ).then((resp) => resp.json())) as Array<any>;
+      for (const member of repoMembers) {
+        const github = member["id"].toString();
+        repoSets[repo][github] = member["role_name"];
+      }
+    }
+
+    const repoJobs = [];
+    // Collect collaborators on the private repos, so we can check against expected perms below
+    for (const repo of Object.keys(repos)) {
+      repoJobs.push(handleRepo(repo));
+    }
+    await Promise.all(repoJobs);
+
+    // TODO: handle cancelling invites
+    /*
+    const invitationsResponse = (await fetch(
+      `https://api.github.com/orgs/ProjectBorealis/invitations`,
+      {
+        headers: GITHUB_REST_API_HEADERS,
+      }
+    ).then((resp) => resp.json())) as Array<any>;
+    */
+
+    const orgMembersResponse = (await fetch(
+      `https://api.github.com/orgs/ProjectBorealis/members`,
+      {
+        headers: GITHUB_REST_API_HEADERS,
+      }
+    ).then((resp) => resp.json())) as Array<any>;
+
+    const on_github_team = new Set();
+
+    for (const member of orgMembersResponse) {
+      const github = member["id"].toString();
+      on_github_team.add(github);
+    }
+
+    async function handleGithubMember(github) {
       const member = by_github[github];
       const username = github_usernames[github];
       const team_set = new Set(member.teams) as Set<string>;
+      // First, let's handle the private repos.
       for (const [repo, perm] of Object.entries(repos)) {
-        if (!perm(team_set)) {
-          continue;
-        }
-        const collab_resp = await fetch(
-          `https://api.github.com/repos/ProjectBorealisTeam/${repo}/collaborators/${username}`,
-          {
-            method: "PUT",
-            headers: GITHUB_REST_API_HEADERS,
-            body: JSON.stringify({
-              permission: github_admins.has(github) ? "admin" : "write",
-            }),
+        // If not in team, either because they're not a member at all, or they don't have perms...
+        if (!github_team.has(github) || !perm(team_set)) {
+          // Check to see if they DO have perms we need to remove
+          if (repoSets[repo][github]) {
+            const collab_resp = await fetch(
+              `https://api.github.com/repos/ProjectBorealisTeam/${repo}/collaborators/${username}`,
+              {
+                method: "DELETE",
+                headers: GITHUB_REST_API_HEADERS,
+              }
+            ).then((resp) => resp.text());
+            if (collab_resp) {
+              results.push(JSON.parse(collab_resp));
+            }
           }
-        ).then((resp) => resp.text());
-        if (collab_resp) {
-          results.push(JSON.parse(collab_resp));
+          return;
+        }
+        const permission = github_admins.has(github) ? "admin" : "write";
+        // Check if we need to add/update perms
+        if (permission !== repoSets[repo][github]) {
+          const collab_resp = await fetch(
+            `https://api.github.com/repos/ProjectBorealisTeam/${repo}/collaborators/${username}`,
+            {
+              method: "PUT",
+              headers: GITHUB_REST_API_HEADERS,
+              body: JSON.stringify({
+                permission,
+              }),
+            }
+          ).then((resp) => resp.text());
+          if (collab_resp) {
+            results.push(JSON.parse(collab_resp));
+          }
         }
       }
-      for (const team of member.teams) {
-        const slug = team.toLowerCase().replace(" ", "-");
-        const team_resp = await fetch(
-          `https://api.github.com/orgs/ProjectBorealis/teams/${slug}/memberships/${username}`,
+      // Now, let's handle team membership.
+      // If we're supposed to be on the GitHub team, let's check if we are.
+      if (github_team.has(github)) {
+        // TODO: handle team changes (including for invitations)
+        // Just check if we're on the team for now. This will work for moving new people into the org, but
+        // we will have to query each team's membership to check if people are on the right team.
+        if (!on_github_team.has(github)) {
+          for (const team of member.teams) {
+            const slug = team.toLowerCase().replace(" ", "-");
+            const team_resp = await fetch(
+              `https://api.github.com/orgs/ProjectBorealis/teams/${slug}/memberships/${username}`,
+              {
+                method: "PUT",
+                headers: GITHUB_REST_API_HEADERS,
+                body: JSON.stringify({
+                  role: github_admins.has(github) ? "maintainer" : "member",
+                }),
+              }
+            ).then((resp) => resp.text());
+            if (team_resp) {
+              results.push(JSON.parse(team_resp));
+            }
+          }
+        }
+        // If we're on the GitHub team, we have nothing to do until we handle team movement.
+      } else if (on_github_team.has(github)) {
+        // TODO: handle cancelling invites
+        // If we're not supposed to be on the team, but we are in the org, then remove.
+        // This will also remove all team memberships, because outsiders cannot be on a team.
+        const membership_resp = await fetch(
+          `https://api.github.com/orgs/ProjectBorealis/members/${username}`,
           {
-            method: "PUT",
+            method: "DELETE",
             headers: GITHUB_REST_API_HEADERS,
-            body: JSON.stringify({
-              role: github_admins.has(github) ? "maintainer" : "member",
-            }),
           }
         ).then((resp) => resp.text());
-        if (team_resp) {
-          results.push(JSON.parse(team_resp));
+        if (membership_resp) {
+          results.push(JSON.parse(membership_resp));
         }
       }
     }
 
-    let collaborators = "[";
-    let isFirst = true;
+    const githubMemberJobs = [];
     for (const github of github_ids) {
-      if (isFirst) {
-        isFirst = false;
-      } else {
-        collaborators += ",";
-      }
-      collaborators += "{";
-      collaborators += `role: ${
-        github_admins.has(github) ? "ADMIN" : "WRITER"
-      } `;
-      const nodeId = github_to_node[github];
-      collaborators += `userId: \"${nodeId}\"`;
-      collaborators += "}";
+      githubMemberJobs.push(handleGithubMember(github));
     }
-    collaborators += "]";
+    await Promise.all(githubMemberJobs);
 
-    const query = JSON.stringify({
-      query: `
+    // Build graphQL for collaborators
+    function buildCollaborators(
+      githubIds: Array<string>,
+      adminOnly: boolean
+    ): string {
+      let collaborators = "[";
+      let isFirst = true;
+      for (const github of githubIds) {
+        if (isFirst) {
+          isFirst = false;
+        } else {
+          collaborators += ",";
+        }
+        collaborators += "{";
+        let role = "NONE";
+        if (github_team.has(github)) {
+          if (github_admins.has(github)) {
+            role = "ADMIN";
+          } else if (!adminOnly) {
+            role = "WRITER";
+          }
+        }
+        collaborators += `role: ${role} `;
+        const nodeId = github_to_node[github];
+        collaborators += `userId: \"${nodeId}\"`;
+        collaborators += "}";
+      }
+      collaborators += "]";
+      return collaborators;
+    }
+
+    async function handleProjectsV2(projectId: string, collaborators: string) {
+      const query = JSON.stringify({
+        query: `
         mutation {
           updateProjectV2Collaborators(input: {
             collaborators: ${collaborators}
-            projectId: \"${c.env.API_GAME_PROJECT}\"
+            projectId: \"${projectId}\"
           }) {
             collaborators {
               totalCount
@@ -178,20 +296,30 @@ export class MemberRefresh extends OpenAPIRoute {
           }
         }
       `,
-    });
+      });
 
-    const gameProjectResp = await fetch("https://api.github.com/graphql", {
-      method: "POST",
-      headers: {
-        Authorization: `token ${c.env.API_GITHUB_TOKEN}`,
-        "User-Agent": "Project Borealis API",
-      },
-      body: query,
-    }).then((resp) => resp.json());
-    results.push(gameProjectResp);
+      const projectResp = await fetch("https://api.github.com/graphql", {
+        method: "POST",
+        headers: {
+          Authorization: `token ${c.env.API_GITHUB_TOKEN}`,
+          "User-Agent": "Project Borealis API",
+        },
+        body: query,
+      }).then((resp) => resp.json());
+      results.push(projectResp);
+    }
+
+    const gameCollaborators = buildCollaborators(github_ids, false);
+    await handleProjectsV2(c.env.API_GAME_PROJECT, gameCollaborators);
+
+    const applicationsCollaborators = buildCollaborators(github_ids, true);
+    await handleProjectsV2(
+      c.env.API_APPLICATIONS_PROJECT,
+      applicationsCollaborators
+    );
 
     return {
-      success: true,
+      success,
       result: { responses: results },
     };
   }
