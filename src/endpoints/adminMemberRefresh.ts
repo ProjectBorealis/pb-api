@@ -110,6 +110,7 @@ export class MemberRefresh extends OpenAPIRoute {
     // The private repos and their permissions
     const repos = {
       pb: () => true,
+      tracker: () => true,
       "pb-public-site": constructTeamChecker(WEB_TEAMS),
       UnrealEngine: constructTeamChecker(GAME_PROGRAMMING_TEAMS),
       RestrictedPlugins: constructTeamChecker(GAME_PROGRAMMING_TEAMS),
@@ -117,7 +118,7 @@ export class MemberRefresh extends OpenAPIRoute {
       applications: isAdmin,
     };
 
-    const noAdminRepos = new Set(["pb", "UnrealEngine"]);
+    const noAdminRepos = new Set(["UnrealEngine"]);
 
     const repoSets = {} as Record<string, Record<string, string>>;
 
@@ -192,10 +193,7 @@ export class MemberRefresh extends OpenAPIRoute {
           }
           return;
         }
-        const permission =
-          github_admins.has(github) && !noAdminRepos.has(repo)
-            ? "admin"
-            : "write";
+        const permission = "write";
         // Check if we need to add/update perms
         if (permission !== repoSets[repo][github]) {
           const collab_resp = await fetch(
