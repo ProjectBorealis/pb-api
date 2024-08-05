@@ -8,6 +8,7 @@ import {
   WEB_TEAMS,
 } from "types";
 import { z } from "zod";
+import { getMemberList } from "./adminMemberList";
 
 export class MemberRefresh extends OpenAPIRoute {
   schema = {
@@ -38,12 +39,7 @@ export class MemberRefresh extends OpenAPIRoute {
   };
 
   async handle(c: Context) {
-    const member_list = await fetch(`${c.env.API_URL}/api/admin/users`, {
-      headers: {
-        Authorization: `Bearer ${c.env.API_ADMIN_TOKEN}`,
-      },
-    }).then((res) => res.json());
-
+    const member_list = await getMemberList(c);
     if (!member_list["success"]) {
       return {
         success: false,
