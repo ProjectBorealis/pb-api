@@ -16,6 +16,11 @@ export class TransmissionRuntime extends OpenAPIRoute {
   schema = {
     tags: ["Transmission"],
     summary: "List script runtime",
+    security: [
+      {
+        PublicBearerAuth: [],
+      },
+    ],
     responses: {
       "200": {
         description: "Returns a list of tranmission runtime",
