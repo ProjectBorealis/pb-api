@@ -21,6 +21,8 @@ const allowedOrigins = new Set([
   "https://dev.projectborealis.com",
   "http://localhost:4321",
   "http://127.0.0.1:4321",
+  "https://localhost:4321",
+  "https://127.0.0.1:4321",
 ]);
 
 app.use(
