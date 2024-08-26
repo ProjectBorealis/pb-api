@@ -1,7 +1,9 @@
 import { fromHono } from "chanfana";
 import { MemberRefresh } from "endpoints/adminMemberRefresh";
 import { Context, Hono } from "hono";
+
 import { bearerAuth } from "hono/bearer-auth";
+import { cache } from "hono/cache";
 import { cors } from "hono/cors";
 import {
   TransmissionButtons,
@@ -44,7 +46,7 @@ app.use(
         return "null";
       }
     },
-    maxAge: 600,
+    maxAge: 86400,
   })
 );
 
@@ -114,6 +116,13 @@ openapi.get("/api/admin/users", MemberList);
 openapi.post("/api/admin/users/refresh", MemberRefresh);
 openapi.post("/api/admin/users", MemberCreate);
 
+app.get(
+  "/api/public/transmission",
+  cache({
+    cacheName: "transmissionRuntime",
+    cacheControl: "max-age=3600",
+  })
+);
 openapi.get("/api/public/transmission", TransmissionRuntime);
 openapi.post("/api/public/transmission/button", TransmissionButtons);
 

@@ -2,12 +2,29 @@ import { Bool, OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
 import { z } from "zod";
 
+let runtime = null;
+let mode = null;
+
 export async function getTransmissionRuntime(c: Context) {
+  if (runtime === null) {
+    runtime =
+      (
+        await c.env.TRANSMISSION.get("runtime", {
+          cacheTtl: 39600,
+        })
+      )?.split(",") ?? [];
+  }
+  if (mode === null) {
+    mode =
+      (await c.env.TRANSMISSION.get("mode", {
+        cacheTtl: 39600,
+      })) ?? "TWN";
+  }
   return {
     success: true,
     result: {
-      runtime: (await c.env.TRANSMISSION.get("runtime"))?.split(",") ?? [],
-      mode: (await c.env.TRANSMISSION.get("mode")) ?? "TWN",
+      runtime,
+      mode,
     },
   };
 }
@@ -45,6 +62,22 @@ export class TransmissionRuntime extends OpenAPIRoute {
     return await getTransmissionRuntime(c);
   }
 }
+
+let buttonCombos = null;
+
+const buttonReject = {
+  success: false,
+  result: {
+    runtime: null,
+  },
+};
+
+const validButtons = new Set([
+  "button-1",
+  "button-left",
+  "button-right",
+  "button-2",
+]);
 
 export class TransmissionButtons extends OpenAPIRoute {
   schema = {
@@ -87,18 +120,25 @@ export class TransmissionButtons extends OpenAPIRoute {
 
   async handle(c: Context) {
     const data = await this.getValidatedData<typeof this.schema>();
-    const buttonCombos = await c.env.TRANSMISSION.get("buttons", {
-      type: "json",
-    });
-    if (!buttonCombos) {
-      return {
-        success: false,
-        result: {
-          runtime: null,
-        },
-      };
+    const buttonsList = data.body.buttons;
+    if (!buttonsList || buttonsList.length < 2 || buttonsList.length > 11) {
+      return buttonReject;
     }
-    const buttons = data.body.buttons?.join("+") ?? "";
+    for (const button of buttonsList) {
+      if (!validButtons.has(button)) {
+        return buttonReject;
+      }
+    }
+    const buttons = data.body.buttons.join("+");
+    if (buttonCombos === null) {
+      buttonCombos = await c.env.TRANSMISSION.get("buttons", {
+        cacheTtl: 39600,
+        type: "json",
+      });
+    }
+    if (!buttonCombos) {
+      return buttonReject;
+    }
     const comboResponse = buttonCombos[buttons];
     if (comboResponse) {
       return {
@@ -108,11 +148,6 @@ export class TransmissionButtons extends OpenAPIRoute {
         },
       };
     }
-    return {
-      success: false,
-      result: {
-        runtime: null,
-      },
-    };
+    return buttonReject;
   }
 }
