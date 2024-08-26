@@ -8,6 +8,10 @@ binding = "DB_ROSTER" # i.e. available in your Worker on env.DB_ROSTER
 database_name = "member-roster"
 database_id = "78c3a8ad-6e39-4337-b174-d4a135e9e36d"
 
+[[kv_namespaces]]
+binding = "TRANSMISSION"
+id = "1e37e12c8e774b65bb32acd18a55d971"
+
 # Automatically place your workloads in an optimal location to minimize latency.
 # If you are running back-end logic in a Worker, running it closer to your back-end infrastructure
 # rather than the end user may result in better performance.

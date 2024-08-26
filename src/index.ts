@@ -3,13 +3,17 @@ import { MemberRefresh } from "endpoints/adminMemberRefresh";
 import { Context, Hono } from "hono";
 import { bearerAuth } from "hono/bearer-auth";
 import { cors } from "hono/cors";
-import { TransmissionRuntime } from "publicEndpoints/public";
+import {
+  TransmissionButtons,
+  TransmissionRuntime,
+} from "publicEndpoints/public";
 import { authenticate } from "utils";
 import { MemberCreate } from "./endpoints/adminMemberCreate";
 import { MemberList } from "./endpoints/adminMemberList";
 
 type Bindings = {
   DB_ROSTER: D1Database;
+  TRANSMISSION: KVNamespace;
 };
 
 // Start a Hono app
@@ -111,6 +115,7 @@ openapi.post("/api/admin/users/refresh", MemberRefresh);
 openapi.post("/api/admin/users", MemberCreate);
 
 openapi.get("/api/public/transmission", TransmissionRuntime);
+openapi.post("/api/public/transmission/button", TransmissionButtons);
 
 // Export the Hono app
 export default app;
