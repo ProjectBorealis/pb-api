@@ -14,6 +14,12 @@ importers:
       hono:
         specifier: ^4.5.8
         version: 4.5.8
+      ip-anonymize:
+        specifier: ^0.1.0
+        version: 0.1.0
+      ip-bigint:
+        specifier: ^8.2.0
+        version: 8.2.0
       zod:
         specifier: ^3.23.8
         version: 3.23.8
@@ -359,6 +365,13 @@ packages:
   hono@4.5.8:
     resolution: {integrity: sha512-pqpSlcdqGkpTTRpLYU1PnCz52gVr0zVR9H5GzMyJWuKQLLEBQxh96q45QizJ2PPX8NATtz2mu31/PKW/Jt+90Q==}
     engines: {node: '>=16.0.0'}
+
+  ip-anonymize@0.1.0:
+    resolution: {integrity: sha512-cZJu+N5JKKFGMK0eEQWNaQMn2EhCysciVM6eotCJwfqotj16BTfVchKsJCH6mQAT9N0GC7oWRcsZ6Lb8dDiwTA==}
+
+  ip-bigint@8.2.0:
+    resolution: {integrity: sha512-46EAEKzGNxojH5JaGEeCix49tL4h1W8ia5mhogZ68HroVAfyLj1E+SFFid4GuyK0mdIKjwcAITLqwg1wlkx2iQ==}
+    engines: {node: '>=18'}
 
   is-binary-path@2.1.0:
     resolution: {integrity: sha512-ZMERYes6pDydyuGidse7OsHxtbI7WVeUEozgR/g7rd0xUimYNlvZRE/K2MgZTjWy725IfelLeVcEM97mmtRGXw==}
@@ -792,6 +805,10 @@ snapshots:
       function-bind: 1.1.2
 
   hono@4.5.8: {}
+
+  ip-anonymize@0.1.0: {}
+
+  ip-bigint@8.2.0: {}
 
   is-binary-path@2.1.0:
     dependencies:

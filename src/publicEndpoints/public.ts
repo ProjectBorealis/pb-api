@@ -1,5 +1,6 @@
 import { Bool, OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
+import { getIp, randomSelectForUser } from "utils";
 import { z } from "zod";
 
 let runtime = null;
@@ -63,7 +64,7 @@ export class TransmissionRuntime extends OpenAPIRoute {
   }
 }
 
-let buttonCombos = null;
+let buttonCombos: Record<string, string[]> | null = null;
 
 const buttonReject = {
   success: false,
@@ -140,11 +141,16 @@ export class TransmissionButtons extends OpenAPIRoute {
       return buttonReject;
     }
     const comboResponse = buttonCombos[buttons];
-    if (comboResponse) {
+    if (comboResponse && comboResponse.length > 0) {
+      let runtime = comboResponse[0];
+      const len = comboResponse.length;
+      if (len > 1) {
+        runtime = comboResponse[randomSelectForUser(getIp(c.req), len)];
+      }
       return {
         success: true,
         result: {
-          runtime: comboResponse,
+          runtime,
         },
       };
     }

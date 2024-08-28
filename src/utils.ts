@@ -1,3 +1,7 @@
+import { HonoRequest } from "hono";
+import anonymizeIP from "ip-anonymize";
+import { parseIp } from "ip-bigint";
+
 export function authenticate(auth: string, key: string) {
   // If not authenticated, it's an automatic rejection. The user already knows it is an authenticated resource.
   if (!auth) {
@@ -82,4 +86,22 @@ export function validate(request: Request) {
   }
 
   return true;
+}
+
+export function getIp(request: HonoRequest) {
+  const rawIp =
+    request.header("CF-Connecting-IP") ||
+    request.header("X-Real-Ip") ||
+    "127.0.0.1";
+  return anonymizeIP(rawIp);
+}
+
+export function randomSelectForUser(ip: string, choices: number): number {
+  const { number } = parseIp(ip);
+  const bigInt = number % BigInt(choices);
+  if (bigInt >= Number.MIN_SAFE_INTEGER && bigInt <= Number.MAX_SAFE_INTEGER) {
+    return Number(bigInt);
+  } else {
+    return 0;
+  }
 }
