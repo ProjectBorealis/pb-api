@@ -98,7 +98,7 @@ export function getIp(request: HonoRequest) {
 
 export function randomSelectForUser(ip: string, choices: number): number {
   const { number } = parseIp(ip);
-  const bigInt = number % BigInt(choices);
+  const bigInt = (number / 2n) % BigInt(choices);
   if (bigInt >= Number.MIN_SAFE_INTEGER && bigInt <= Number.MAX_SAFE_INTEGER) {
     return Math.abs(Number(bigInt));
   } else {
