@@ -100,7 +100,7 @@ export function randomSelectForUser(ip: string, choices: number): number {
   const { number } = parseIp(ip);
   const bigInt = number % BigInt(choices);
   if (bigInt >= Number.MIN_SAFE_INTEGER && bigInt <= Number.MAX_SAFE_INTEGER) {
-    return Number(bigInt);
+    return Math.abs(Number(bigInt));
   } else {
     return 0;
   }
