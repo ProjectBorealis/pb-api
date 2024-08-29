@@ -133,6 +133,33 @@ export class MemberRefresh extends OpenAPIRoute {
         const github = member["id"].toString();
         repoSets[repo][github] = member["role_name"];
       }
+      const repoInvites = (await fetch(
+        `https://api.github.com/repos/ProjectBorealisTeam/${repo}/invitations`,
+        {
+          headers: GITHUB_REST_API_HEADERS,
+        }
+      ).then((resp) => resp.json())) as Array<any>;
+      const cancelInvites = [];
+      for (const repoInvite of repoInvites) {
+        // TODO: need to cancel invite as well if permissions remove
+        if (repoInvite.expired) {
+          cancelInvites.push(
+            fetch(
+              `https://api.github.com/repos/ProjectBorealisTeam/${repo}/invitations/${repoInvite.id}`,
+              {
+                method: "DELETE",
+                headers: GITHUB_REST_API_HEADERS,
+              }
+            )
+          );
+        } else {
+          // TODO: need to update invite if permissions change
+          repoSets[repo][repoInvite.invitee.id] = repoInvite.permissions;
+        }
+      }
+      if (cancelInvites.length) {
+        await Promise.all(cancelInvites);
+      }
     }
 
     const repoJobs = [];
@@ -142,15 +169,35 @@ export class MemberRefresh extends OpenAPIRoute {
     }
     await Promise.all(repoJobs);
 
-    // TODO: handle cancelling invites
-    /*
+    const failedInvitationsResponse = (await fetch(
+      `https://api.github.com/orgs/ProjectBorealis/failed_invitations`,
+      {
+        headers: GITHUB_REST_API_HEADERS,
+      }
+    ).then((resp) => resp.json())) as Array<any>;
+    const cancelInvitePromises = [];
+    for (const invitation of failedInvitationsResponse) {
+      cancelInvitePromises.push(
+        fetch(
+          `https://api.github.com/orgs/ProjectBorealis/invitations/${invitation.id}`,
+          {
+            method: "DELETE",
+            headers: GITHUB_REST_API_HEADERS,
+          }
+        )
+      );
+    }
+    await Promise.all(cancelInvitePromises);
     const invitationsResponse = (await fetch(
       `https://api.github.com/orgs/ProjectBorealis/invitations`,
       {
         headers: GITHUB_REST_API_HEADERS,
       }
     ).then((resp) => resp.json())) as Array<any>;
-    */
+    const teamInvites = new Set();
+    for (const invitation of invitationsResponse) {
+      teamInvites.add(invitation.login);
+    }
 
     const orgMembersResponse = (await fetch(
       `https://api.github.com/orgs/ProjectBorealis/members`,
@@ -187,7 +234,7 @@ export class MemberRefresh extends OpenAPIRoute {
               results.push(JSON.parse(collab_resp));
             }
           }
-          return;
+          continue;
         }
         const permission = "write";
         // Check if we need to add/update perms
@@ -213,7 +260,7 @@ export class MemberRefresh extends OpenAPIRoute {
         // TODO: handle team changes (including for invitations)
         // Just check if we're on the team for now. This will work for moving new people into the org, but
         // we will have to query each team's membership to check if people are on the right team.
-        if (!on_github_team.has(github)) {
+        if (!on_github_team.has(github) && !teamInvites.has(username)) {
           for (const team of member.teams) {
             const slug = team.toLowerCase().replace(" ", "-");
             const team_resp = await fetch(
@@ -231,7 +278,7 @@ export class MemberRefresh extends OpenAPIRoute {
             }
           }
         }
-        // If we're on the GitHub team, we have nothing to do until we handle team movement.
+        // TODO: If we're on the GitHub team, we have nothing to do until we handle team movement.
       } else if (on_github_team.has(github)) {
         // TODO: handle cancelling invites
         // If we're not supposed to be on the team, but we are in the org, then remove.
