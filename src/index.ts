@@ -12,6 +12,8 @@ import {
 import { authenticate } from "utils";
 import { MemberCreate } from "./endpoints/adminMemberCreate";
 import { MemberList } from "./endpoints/adminMemberList";
+import { EventCreate } from "./endpoints/analyticsEventCreate";
+import { EventList } from "./endpoints/analyticsEventList";
 
 type Bindings = {
   DB_ROSTER: D1Database;
@@ -49,7 +51,7 @@ app.use(
     maxAge: 86400,
   })
 );
-
+  
 app.use(
   "/api/dev/*",
   bearerAuth({
@@ -64,15 +66,6 @@ app.use(
   bearerAuth({
     verifyToken: async (token, c) => {
       return authenticate(token, c.env.API_ADMIN_TOKEN);
-    },
-  })
-);
-
-app.use(
-  "/api/public/*",
-  bearerAuth({
-    verifyToken: async (token, c) => {
-      return authenticate(token, c.env.API_PUBLIC_TOKEN);
     },
   })
 );
@@ -115,6 +108,9 @@ openapi.registry.registerComponent("securitySchemes", "GameBearerAuth", {
 openapi.get("/api/admin/users", MemberList);
 openapi.post("/api/admin/users/refresh", MemberRefresh);
 openapi.post("/api/admin/users", MemberCreate);
+
+openapi.post("api/game/analytics/event", EventCreate);
+openapi.get("/api/game/analytics/event", EventList);
 
 app.get(
   "/api/public/transmission",

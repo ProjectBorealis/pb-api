@@ -3,13 +3,7 @@ import anonymizeIP from "ip-anonymize";
 import { parseIp } from "ip-bigint";
 
 export function authenticate(auth: string, key: string) {
-  // If not authenticated, it's an automatic rejection. The user already knows it is an authenticated resource.
-  if (!auth) {
-    return false;
-  }
-
-  // If there is no key, it cannot be authenticated.
-  if (!key) {
+  if (!auth || !key) {
     return false;
   }
 
@@ -23,9 +17,8 @@ export function authenticate(auth: string, key: string) {
 
   const encoder = new TextEncoder();
 
-  // a and b must be equal length, or else the encoding time can be used as an attack vector.
   const a = encoder.encode(auth);
-  const b = encoder.encode(realBearer);
+  const b = encoder.encode(key);
 
   // timingSafeEqual will error out if byte lengths are not equal, so let's fake a comparison.
   if (a.byteLength !== b.byteLength) {
@@ -61,27 +54,11 @@ export function validate(request: Request) {
   const fetchMode = request.headers.get("Sec-Fetch-Mode");
   const fetchDest = request.headers.get("Sec-Fetch-Dest");
 
-  if (!fetchSite) {
+  if (!fetchSite || !fetchMode || !fetchDest) {
     return true;
   }
 
-  if (!fetchMode) {
-    return true;
-  }
-
-  if (!fetchDest) {
-    return true;
-  }
-
-  if (!allowedFetchSites.has(fetchSite)) {
-    return false;
-  }
-
-  if (!allowedFetchModes.has(fetchMode)) {
-    return false;
-  }
-
-  if (disallowedFetchDests.has(fetchDest)) {
+  if (!allowedFetchSites.has(fetchSite) || !allowedFetchModes.has(fetchMode) || disallowedFetchDests.has(fetchDest)) {
     return false;
   }
 

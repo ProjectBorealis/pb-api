@@ -80,3 +80,29 @@ export const constructTeamChecker = (teams: Array<string>) => {
 export const isAdmin = (teams: Set<string>) => {
   return ADMIN_TEAMS.some((team) => teams.has(team));
 };
+
+// Define the attribute schema
+const Attribute = z.object({
+  name: Str().describe("The key name of this attribute"),
+  value: Str().describe("The value of the attribute")
+}).describe("An attribute of an event");
+
+// Define the attributes array schema
+const Attributes = Arr(Attribute).describe("The attributes of an event");
+
+// Define the event schema
+const EventSchema = z.object({
+  eventName: Str().describe("The key name of this event"),
+  attributes: Attributes.optional().describe("The attributes of an event")
+}).describe("An event that was logged by analytics");
+
+// Define the main analytics schema
+export const Event = z.object({
+  sessionId: Str().describe("The unique session identifier for a performance test run"),
+  userId: Str().describe("The random base identifier for a performance test user"),
+  buildInfo: Str().describe("The game client version"),
+  events: Arr(EventSchema).describe("The logged analytics events")
+}).strict();
+
+// Export the types if needed
+export type EventType = z.infer<typeof Event>;
