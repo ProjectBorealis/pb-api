@@ -12,8 +12,8 @@ importers:
         specifier: ^2.0.4
         version: 2.0.4
       hono:
-        specifier: ^4.5.8
-        version: 4.5.8
+        specifier: ^4.12.12
+        version: 4.12.12
       ip-anonymize:
         specifier: ^0.1.0
         version: 0.1.0
@@ -294,8 +294,8 @@ packages:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
     engines: {node: '>= 8.10.0'}
 
-  consola@3.2.3:
-    resolution: {integrity: sha512-I5qxpzLv+sJhTVEoLYNcTW+bThDCPsit0vLNKShZx6rLtpilNpmmeTPaeqJb9ZE9dV3DGaeby6Vuhrw38WjeyQ==}
+  consola@3.4.2:
+    resolution: {integrity: sha512-5IKcdX0nnYavi6G7TtOhwkYzyjfJlatbjMjuLSfE2kYT5pMDOilZ4OvMhi637CcDICTmz3wARPoyhqyX1Y+XvA==}
     engines: {node: ^14.18.0 || >=16.10.0}
 
   cookie@0.5.0:
@@ -317,8 +317,8 @@ packages:
       supports-color:
         optional: true
 
-  defu@6.1.4:
-    resolution: {integrity: sha512-mEQCMmwJu317oSz8CwdIOdwf3xMif1ttiM8LTufzc3g6kR+9Pe236twL8j3IYT1F7GfRgGcW6MWxzZjLIkuHIg==}
+  defu@6.1.7:
+    resolution: {integrity: sha512-7z22QmUWiQ/2d0KkdYmANbRUVABpZ9SNYyH5vx6PZ+nE5bcC0l7uFvEfHlyld/HcGBFTL536ClDt3DEcSlEJAQ==}
 
   esbuild@0.17.19:
     resolution: {integrity: sha512-XQ0jAPFkK/u3LcVRcvVHQcTIqD6E2H1fvZMA5dQPSOWb3suUbWbfbRf94pjc0bNzRYLfIrDRQXr7X+LHIm5oHw==}
@@ -362,9 +362,9 @@ packages:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
     engines: {node: '>= 0.4'}
 
-  hono@4.5.8:
-    resolution: {integrity: sha512-pqpSlcdqGkpTTRpLYU1PnCz52gVr0zVR9H5GzMyJWuKQLLEBQxh96q45QizJ2PPX8NATtz2mu31/PKW/Jt+90Q==}
-    engines: {node: '>=16.0.0'}
+  hono@4.12.12:
+    resolution: {integrity: sha512-p1JfQMKaceuCbpJKAPKVqyqviZdS0eUxH9v82oWo1kb9xjQ5wA6iP3FNVAPDFlz5/p7d45lO+BpSk1tuSZMF4Q==}
+    engines: {node: '>=16.9.0'}
 
   ip-anonymize@0.1.0:
     resolution: {integrity: sha512-cZJu+N5JKKFGMK0eEQWNaQMn2EhCysciVM6eotCJwfqotj16BTfVchKsJCH6mQAT9N0GC7oWRcsZ6Lb8dDiwTA==}
@@ -422,8 +422,8 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  node-fetch-native@1.6.4:
-    resolution: {integrity: sha512-IhOigYzAKHd244OC0JIMIUrjzctirCmPkaIfhDeGcEETWof5zKYUW7e7MYvChGWh/4CJeXEgsRyGzuF334rOOQ==}
+  node-fetch-native@1.6.7:
+    resolution: {integrity: sha512-g9yhqoedzIUm0nTnTqAQvueMPVOuIY16bqgAJJC8XOOubYFNwz6IER9qs0Gq2Xd0+CecCKFjtdDTMA4u4xG06Q==}
 
   node-forge@1.3.1:
     resolution: {integrity: sha512-dPEtOeMvF9VMcYV/1Wb8CPoVAXtp6MKMlcbAt4ddqmGqUJ6fQZFXkNZNkNlfevtNkGtaSoXf/vNNNSvgrdXwtA==}
@@ -504,8 +504,8 @@ packages:
   tslib@2.7.0:
     resolution: {integrity: sha512-gLXCKdN1/j47AiHiOkJN69hJmcbGTHI0ImLmbYLHykhgeN0jVGola9yVjFgzCUklsZQMW55o+dW7IXv3RCXDzA==}
 
-  ufo@1.5.4:
-    resolution: {integrity: sha512-UsUk3byDzKd04EyoZ7U4DOlxQaD14JUKQl6/P7wiX4FNvUfm3XL246n9W5AmqwW5RSFJ27NAuM0iLscAOYUiGQ==}
+  ufo@1.6.3:
+    resolution: {integrity: sha512-yDJTmhydvl5lJzBmy/hyOAA0d+aqCBuwl818haVdYCRrWV84o7YyeVm4QlVHStqNrrJSTb6jKuFAVqAFsr+K3Q==}
 
   undici@5.28.4:
     resolution: {integrity: sha512-72RFADWFqKmUb2hmmvNODKL3p9hcB6Gt2DOQMis1SEBaV6a4MH8soBvzg+95CYhCKPFedut2JY9bMfrDl9D23g==}
@@ -735,7 +735,7 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
-  consola@3.2.3: {}
+  consola@3.4.2: {}
 
   cookie@0.5.0: {}
 
@@ -747,7 +747,7 @@ snapshots:
     dependencies:
       ms: 2.1.2
 
-  defu@6.1.4: {}
+  defu@6.1.7: {}
 
   esbuild@0.17.19:
     optionalDependencies:
@@ -804,7 +804,7 @@ snapshots:
     dependencies:
       function-bind: 1.1.2
 
-  hono@4.5.8: {}
+  hono@4.12.12: {}
 
   ip-anonymize@0.1.0: {}
 
@@ -861,7 +861,7 @@ snapshots:
 
   nanoid@3.3.7: {}
 
-  node-fetch-native@1.6.4: {}
+  node-fetch-native@1.6.7: {}
 
   node-forge@1.3.1: {}
 
@@ -931,7 +931,7 @@ snapshots:
 
   tslib@2.7.0: {}
 
-  ufo@1.5.4: {}
+  ufo@1.6.3: {}
 
   undici@5.28.4:
     dependencies:
@@ -939,12 +939,12 @@ snapshots:
 
   unenv-nightly@1.10.0-1717606461.a117952:
     dependencies:
-      consola: 3.2.3
-      defu: 6.1.4
+      consola: 3.4.2
+      defu: 6.1.7
       mime: 3.0.0
-      node-fetch-native: 1.6.4
+      node-fetch-native: 1.6.7
       pathe: 1.1.2
-      ufo: 1.5.4
+      ufo: 1.6.3
 
   workerd@1.20240821.1:
     optionalDependencies:
